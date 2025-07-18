@@ -1,25 +1,48 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Markerless WebAR Game</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-face-three.prod.js"></script>
-  <script src="js/app.js" defer></script>
-  <style>
-    body { margin: 0; overflow: hidden; font-family: sans-serif; }
-    #scoreboard {
-      position: absolute;
-      top: 10px; left: 10px;
-      color: white;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px;
-      z-index: 1;
-      font-size: 20px;
-    }
-  </style>
-</head>
-<body>
-  <div id="scoreboard">Skor: 0</div>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Markerless AR Game - Spatial</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.2/aframe/build/aframe-ar-nft.min.js"></script>
+    <script src="js/app.js" defer></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+      #scoreboard {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 100;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 10px;
+        font-size: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scoreboard">Skor: 0</div>
+
+    <a-scene
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true;"
+      embedded
+      arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+    >
+      <a-entity camera></a-entity>
+
+      <!-- Objek target -->
+      <a-sphere
+        id="target"
+        position="0 0 -3"
+        radius="0.4"
+        color="red"
+        class="clickable"
+      ></a-sphere>
+    </a-scene>
+  </body>
 </html>
