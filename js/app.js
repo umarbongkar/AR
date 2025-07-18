@@ -1,64 +1,31 @@
-import * as THREE from 'three';
-import { MindARThree } from 'mind-ar/dist/mindar-face-three.prod.js';
-
-document.addEventListener("DOMContentLoaded", async () => {
-  const mindarThree = new MindARThree({
-    container: document.body,
-  });
-
-  const { renderer, scene, camera } = mindarThree;
-
-  const anchor = mindarThree.addAnchor(168); // face anchor index (default)
-  let score = 0;
+document.addEventListener("DOMContentLoaded", () => {
+  const target = document.querySelector('#target');
   const scoreboard = document.getElementById('scoreboard');
+  let score = 0;
 
-  // Create the clickable object
-  const geometry = new THREE.SphereGeometry(0.2, 32, 32);
-  const material = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-  const object = new THREE.Mesh(geometry, material);
-  object.name = "target";
-
-  anchor.group.add(object);
-
-  // Random position generator
-  function randomPosition() {
-    return new THREE.Vector3(
-      (Math.random() - 0.5) * 1.5,
-      (Math.random() - 0.5) * 1.5,
-      (Math.random() - 0.5) * 1.5
-    );
+  // Fungsi buat posisi acak di depan kamera (sekitar -3 sampai -5 meter ke depan)
+  function getRandomPosition() {
+    const x = (Math.random() - 0.5) * 4; // -2 sampai 2
+    const y = Math.random() * 2 + 0.5;   // 0.5 sampai 2.5
+    const z = -Math.random() * 2 - 3;    // -3 sampai -5
+    return `${x} ${y} ${z}`;
   }
 
-  object.position.copy(randomPosition());
-
-  // Lighting
-  const light = new THREE.HemisphereLight(0xffffff, 0x444444);
-  scene.add(light);
-
-  // Raycaster for detecting clicks
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-
-  function onClick(event) {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects([object], true);
-    if (intersects.length > 0) {
-      object.visible = false;
-      score += 1;
-      scoreboard.textContent = `Skor: ${score}`;
-      setTimeout(() => {
-        object.visible = true;
-        object.position.copy(randomPosition());
-      }, 1000);
-    }
+  function repositionTarget() {
+    target.setAttribute('position', getRandomPosition());
+    target.setAttribute('visible', true);
   }
 
-  window.addEventListener('click', onClick);
-
-  await mindarThree.start();
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
+  // Klik objek
+  target.addEventListener('click', () => {
+    score += 1;
+    scoreboard.innerText = `Skor: ${score}`;
+    target.setAttribute('visible', false);
+    setTimeout(() => {
+      repositionTarget();
+    }, 1000);
   });
+
+  // Posisi awal
+  repositionTarget();
 });
