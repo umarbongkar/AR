@@ -2,26 +2,34 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>AR 3D Object Game</title>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>AR Markerless Game</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js"></script>
     <script src="js/app.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <a-scene embedded arjs='detectionMode: mono_and_matrix; matrixCodeType: 3x3;'>
-        <!-- Marker Kamera -->
-        <a-marker preset="hiro">
-            <!-- Objek 3D akan muncul di sini secara dinamis -->
-        </a-marker>
+    <!-- Overlay sebelum memulai AR -->
+    <div id="start-screen">
+        <button id="start-button">START AR GAME</button>
+    </div>
+
+    <!-- Container untuk scene AR -->
+    <div id="scene-container" style="display: none;">
+        <a-scene vr-mode-ui="enabled: false" arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+            <a-camera gps-camera rotation-reader></a-camera>
+            
+            <!-- Objek akan muncul secara dinamis di sini -->
+            
+            <!-- UI Skor -->
+            <a-entity id="ui">
+                <a-text id="score-text" value="Score: 0" position="0 1 -1" color="white" align="center" width="5"></a-text>
+                <a-text id="timer-text" value="Time: 30" position="0 0.8 -1" color="white" align="center" width="5"></a-text>
+            </a-entity>
+        </a-scene>
         
-        <!-- Kamera -->
-        <a-entity camera></a-entity>
-        
-        <!-- UI Skor -->
-        <a-entity id="score-board" position="0 0.5 -1">
-            <a-text id="score-text" value="Score: 0" color="black" align="center" width="5"></a-text>
-        </a-entity>
-    </a-scene>
+        <button id="exit-ar">Exit AR</button>
+    </div>
 </body>
 </html>
