@@ -1,26 +1,19 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>AR Game</title>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-      <a-assets>
-        <a-asset-item id="obj-model" src="model/object.glb"></a-asset-item>
-      </a-assets>
-
-      <!-- Placeholder untuk objek -->
-      <a-entity id="spawn-container"></a-entity>
-
-      <!-- Kamera AR -->
-      <a-entity camera></a-entity>
-    </a-scene>
-
-    <div id="score-display">Score: 0</div>
-
-    <script src="script.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>Markerless WebAR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #score { position: fixed; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
 </html>
