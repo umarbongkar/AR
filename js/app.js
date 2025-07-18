@@ -1,74 +1,200 @@
-document.addEventListener('DOMContentLoaded', () => {
-    let score = 0;
-    const marker = document.querySelector('a-marker');
-    const scoreText = document.querySelector('#score-text');
+// Konfigurasi Game
+const config = {
+    gameDuration: 30, // detik
+    spawnInterval: 2, // detik
+    objectCount: 5,
+    models: [
+        { path: 'assets/models/coin.glb', scale: '0.2 0.2 0.2', points: 10 },
+        { path: 'assets/models/gem.glb', scale: '0.15 0.15 0.15', points: 20 },
+        { path: 'assets/models/chest.glb', scale: '0.25 0.25 0.25', points: 30 }
+    ]
+};
+
+// State Game
+let score = 0;
+let timeLeft = config.gameDuration;
+let gameInterval;
+let spawnInterval;
+let activeObjects = [];
+
+// Elemen UI
+const startScreen = document.getElementById('start-screen');
+const startButton = document.getElementById('start-button');
+const sceneContainer = document.getElementById('scene-container');
+const exitButton = document.getElementById('exit-ar');
+const scoreText = document.getElementById('score-text');
+const timerText = document.getElementById('timer-text');
+const scene = document.querySelector('a-scene');
+
+// Inisialisasi
+startButton.addEventListener('click', startARGame);
+exitButton.addEventListener('click', exitARGame);
+
+// Fungsi Utama
+function startARGame() {
+    // Setup tampilan
+    startScreen.style.display = 'none';
+    sceneContainer.style.display = 'block';
     
-    // Daftar model 3D yang akan digunakan
-    const models = [
-        { path: 'assets/models/model1.glb', scale: '0.5 0.5 0.5' },
-        { path: 'assets/models/model2.glb', scale: '0.3 0.3 0.3' },
-        { path: 'assets/models/model3.glb', scale: '0.4 0.4 0.4' }
-    ];
+    // Reset game state
+    score = 0;
+    timeLeft = config.gameDuration;
+    activeObjects = [];
     
-    // Fungsi untuk membuat objek 3D acak
-    function spawnRandomObject() {
-        // Hapus objek yang ada
-        clearObjects();
+    // Update UI
+    updateScore();
+    updateTimer();
+    
+    // Mulai game loop
+    gameInterval = setInterval(updateGame, 1000);
+    spawnInterval = setInterval(spawnObjects, config.spawnInterval * 1000);
+    
+    // Spawn objek awal
+    spawnObjects();
+}
+
+function exitARGame() {
+    // Hentikan interval
+    clearInterval(gameInterval);
+    clearInterval(spawnInterval);
+    
+    // Hapus semua objek
+    removeAllObjects();
+    
+    // Kembali ke start screen
+    sceneContainer.style.display = 'none';
+    startScreen.style.display = 'block';
+}
+
+function updateGame() {
+    timeLeft--;
+    updateTimer();
+    
+    if (timeLeft <= 0) {
+        endGame();
+    }
+}
+
+function updateScore() {
+    scoreText.setAttribute('value', `Score: ${score}`);
+}
+
+function updateTimer() {
+    timerText.setAttribute('value', `Time: ${timeLeft}`);
+}
+
+function spawnObjects() {
+    // Hapus objek yang sudah lama
+    cleanupObjects();
+    
+    // Spawn objek baru jika belum mencapai batas
+    if (activeObjects.length < config.objectCount) {
+        const objectsToSpawn = Math.min(2, config.objectCount - activeObjects.length);
         
-        // Pilih model acak
-        const randomModel = models[Math.floor(Math.random() * models.length)];
-        
-        // Posisi acak dalam area marker
-        const x = (Math.random() * 0.8) - 0.4; // -0.4 sampai 0.4
-        const y = (Math.random() * 0.4) + 0.2; // 0.2 sampai 0.6
-        const z = (Math.random() * 0.4) - 0.2; // -0.2 sampai 0.2
-        
-        // Buat elemen 3D
-        const entity = document.createElement('a-entity');
-        entity.setAttribute('gltf-model', randomModel.path);
-        entity.setAttribute('scale', randomModel.scale);
-        entity.setAttribute('position', `${x} ${y} ${z}`);
-        entity.setAttribute('class', 'clickable-object');
-        entity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
-        
-        // Tambahkan event listener untuk klik
-        entity.addEventListener('click', () => {
-            // Animasi menghilang
-            entity.setAttribute('animation', 'property: scale; to: 0 0 0; dur: 200; easing: easeInCubic');
+        for (let i = 0; i < objectsToSpawn; i++) {
+            spawnRandomObject();
+        }
+    }
+}
+
+function spawnRandomObject() {
+    const model = config.models[Math.floor(Math.random() * config.models.length)];
+    
+    // Posisi acak di sekitar pengguna (dalam radius 1-3 meter)
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 1 + Math.random() * 2;
+    const x = Math.cos(angle) * distance;
+    const z = Math.sin(angle) * distance;
+    
+    const entity = document.createElement('a-entity');
+    entity.setAttribute('gltf-model', model.path);
+    entity.setAttribute('scale', model.scale);
+    entity.setAttribute('position', `${x} 0 ${z}`);
+    entity.setAttribute('class', 'clickable-object');
+    entity.setAttribute('animation', {
+        property: 'rotation',
+        to: `0 ${360 + (Math.random() * 180)} 0`,
+        loop: true,
+        dur: 5000 + Math.random() * 5000
+    });
+    
+    // Tambahkan komponen untuk interaksi
+    entity.setAttribute('cursor-listener', '');
+    
+    // Simpan data objek
+    const objectData = {
+        element: entity,
+        points: model.points,
+        spawnTime: Date.now()
+    };
+    
+    activeObjects.push(objectData);
+    scene.appendChild(entity);
+}
+
+function cleanupObjects() {
+    const now = Date.now();
+    const maxLifetime = 15000; // 15 detik
+    
+    activeObjects = activeObjects.filter(obj => {
+        if (now - obj.spawnTime > maxLifetime) {
+            scene.removeChild(obj.element);
+            return false;
+        }
+        return true;
+    });
+}
+
+function removeAllObjects() {
+    activeObjects.forEach(obj => {
+        scene.removeChild(obj.element);
+    });
+    activeObjects = [];
+}
+
+function endGame() {
+    clearInterval(gameInterval);
+    clearInterval(spawnInterval);
+    
+    alert(`Game Over! Your score: ${score}`);
+    exitARGame();
+}
+
+// Komponen A-Frame untuk menangani klik
+AFRAME.registerComponent('cursor-listener', {
+    init: function() {
+        this.el.addEventListener('click', (evt) => {
+            // Cari objek yang diklik
+            const clickedObj = activeObjects.find(obj => obj.element === this.el);
             
-            // Hapus elemen setelah animasi selesai
-            setTimeout(() => {
-                marker.removeChild(entity);
-                increaseScore();
-                spawnRandomObject();
-            }, 200);
+            if (clickedObj) {
+                // Animasi menghilang
+                this.el.setAttribute('animation', {
+                    property: 'scale',
+                    to: '0 0 0',
+                    dur: 200,
+                    easing: 'easeInCubic'
+                });
+                
+                // Hapus setelah animasi
+                setTimeout(() => {
+                    scene.removeChild(this.el);
+                    activeObjects = activeObjects.filter(obj => obj.element !== this.el);
+                    
+                    // Tambah skor
+                    score += clickedObj.points;
+                    updateScore();
+                    
+                    // Mainkan sound effect
+                    playSound('assets/sounds/collect.mp3');
+                }, 200);
+            }
         });
-        
-        // Tambahkan ke marker
-        marker.appendChild(entity);
     }
-    
-    // Fungsi untuk menghapus semua objek
-    function clearObjects() {
-        const objects = document.querySelectorAll('.clickable-object');
-        objects.forEach(obj => marker.removeChild(obj));
-    }
-    
-    // Fungsi untuk menambah skor
-    function increaseScore() {
-        score++;
-        scoreText.setAttribute('value', `Score: ${score}`);
-    }
-    
-    // Mulai game ketika marker terdeteksi
-    marker.addEventListener('markerFound', () => {
-        score = 0;
-        scoreText.setAttribute('value', `Score: ${score}`);
-        spawnRandomObject();
-    });
-    
-    // Reset ketika marker hilang
-    marker.addEventListener('markerLost', () => {
-        clearObjects();
-    });
 });
+
+// Fungsi untuk memainkan suara
+function playSound(soundPath) {
+    const sound = new Audio(soundPath);
+    sound.play().catch(e => console.log("Audio play failed:", e));
+}
