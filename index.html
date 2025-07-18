@@ -1,18 +1,81 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.2.1/aframe/build/aframe-ar.min.js"></script>
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
-      <!-- Marker -->
-      <a-marker preset="hiro">
-        <!-- 3D Object -->
-        <a-box position="0 0.5 0" color="red"></a-box>
-      </a-marker>
-      <a-entity camera></a-entity>
-    </a-scene>
-  </body>
-</html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR Skor Game</title>
+  <style>
+    #score { position: fixed; top: 10px; left: 10px; color: white; font-size: 24px; z-index: 10; }
+  </style>
+</head>
+<body>
+<div id="score">Skor: 0</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.157/build/three.module.js';
+import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.157/examples/jsm/webxr/ARButton.js';
 
+let camera, scene, renderer;
+let controller;
+let score = 0;
+const objects = [];
+
+init();
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera();
+
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  document.body.appendChild(ARButton.createButton(renderer, {
+    requiredFeatures: ['hit-test', 'dom-overlay'],
+    domOverlay: { root: document.body }
+  }));
+
+  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+  scene.add(light);
+
+  controller = renderer.xr.getController(0);
+  controller.addEventListener('select', onSelect);
+  scene.add(controller);
+
+  // Spawn object every 3 seconds
+  setInterval(spawnObject, 3000);
+
+  renderer.setAnimationLoop(() => {
+    renderer.render(scene, camera);
+  });
+}
+
+function spawnObject() {
+  const geometry = new THREE.SphereGeometry(0.05, 16, 16);
+  const material = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff });
+  const sphere = new THREE.Mesh(geometry, material);
+
+  sphere.position.set(
+    (Math.random() - 0.5) * 1.5,
+    Math.random() * 1 + 0.5,
+    -1 - Math.random()
+  );
+
+  scene.add(sphere);
+  objects.push(sphere);
+}
+
+function onSelect() {
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera({ x: 0, y: 0 }, camera); // center screen
+
+  const intersects = raycaster.intersectObjects(objects);
+  if (intersects.length > 0) {
+    const obj = intersects[0].object;
+    scene.remove(obj);
+    objects.splice(objects.indexOf(obj), 1);
+    score++;
+    document.getElementById('score').innerText = "Skor: " + score;
+  }
+}
+</script>
+</body>
+</html>
