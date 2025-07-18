@@ -31,26 +31,56 @@ startButton.addEventListener('click', startARGame);
 exitButton.addEventListener('click', exitARGame);
 
 // Fungsi Utama
-function startARGame() {
-    // Setup tampilan
-    startScreen.style.display = 'none';
-    sceneContainer.style.display = 'block';
+// Di app.js
+async function startARGame() {
+    console.log("Starting AR Game...");
     
-    // Reset game state
-    score = 0;
-    timeLeft = config.gameDuration;
-    activeObjects = [];
-    
-    // Update UI
-    updateScore();
-    updateTimer();
-    
-    // Mulai game loop
-    gameInterval = setInterval(updateGame, 1000);
-    spawnInterval = setInterval(spawnObjects, config.spawnInterval * 1000);
-    
-    // Spawn objek awal
-    spawnObjects();
+    try {
+        // 1. Check WebXR support
+        if (!navigator.xr) {
+            throw new Error("WebXR not supported");
+        }
+
+        // 2. Request camera permission
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        console.log("Camera access granted");
+
+        // 3. Setup UI
+        startScreen.style.display = 'none';
+        sceneContainer.style.display = 'block';
+        
+        // 4. Initialize AR scene
+        await scene.systems['arjs'].start();
+        console.log("AR system started");
+
+        // 5. Start game logic
+        score = 0;
+        timeLeft = config.gameDuration;
+        activeObjects = [];
+        updateScore();
+        updateTimer();
+        
+        gameInterval = setInterval(updateGame, 1000);
+        spawnInterval = setInterval(spawnObjects, config.spawnInterval * 1000);
+        spawnObjects();
+        
+    } catch (error) {
+        console.error("AR initialization failed:", error);
+        alert(`Failed to start AR: ${error.message}`);
+        
+        // Fallback to non-AR mode for testing
+        if (confirm("AR not available. Continue in test mode?")) {
+            startScreen.style.display = 'none';
+            sceneContainer.style.display = 'block';
+            // ... start game without AR
+        }
+    }
 }
 
 function exitARGame() {
