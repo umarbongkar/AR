@@ -1,104 +1,123 @@
-// Konfigurasi Game
-const config = {
-    gameDuration: 30, // detik
-    spawnInterval: 2, // detik
-    objectCount: 5,
-    models: [
-        { path: 'assets/models/coin.glb', scale: '0.2 0.2 0.2', points: 10 },
-        { path: 'assets/models/gem.glb', scale: '0.15 0.15 0.15', points: 20 },
-        { path: 'assets/models/chest.glb', scale: '0.25 0.25 0.25', points: 30 }
+// ========== CONFIGURATION ========== //
+const CONFIG = {
+    GAME_DURATION: 60, // seconds
+    SPAWN_RATE: 2.5, // seconds
+    MAX_OBJECTS: 8,
+    OBJECTS: [
+        { model: "assets/models/coin.glb", scale: "0.2 0.2 0.2", points: 10 },
+        { model: "assets/models/gem.glb", scale: "0.15 0.15 0.15", points: 20 },
+        { model: "assets/models/treasure.glb", scale: "0.3 0.3 0.3", points: 50 }
     ]
 };
 
-// State Game
+// ========== GAME STATE ========== //
 let score = 0;
-let timeLeft = config.gameDuration;
-let gameInterval;
-let spawnInterval;
+let timeLeft = CONFIG.GAME_DURATION;
+let isPlaying = false;
 let activeObjects = [];
+let spawnInterval;
+let gameTimer;
 
-// Elemen UI
-const startScreen = document.getElementById('start-screen');
-const startButton = document.getElementById('start-button');
-const sceneContainer = document.getElementById('scene-container');
-const exitButton = document.getElementById('exit-ar');
-const scoreText = document.getElementById('score-text');
-const timerText = document.getElementById('timer-text');
-const scene = document.querySelector('a-scene');
+// ========== DOM ELEMENTS ========== //
+const startScreen = document.getElementById("start-screen");
+const startButton = document.getElementById("start-button");
+const sceneContainer = document.getElementById("scene-container");
+const exitButton = document.getElementById("exit-button");
+const scoreText = document.getElementById("score-text");
+const scene = document.querySelector("a-scene");
 
-// Inisialisasi
-startButton.addEventListener('click', startARGame);
-exitButton.addEventListener('click', exitARGame);
+// ========== INITIALIZE GAME ========== //
+document.addEventListener("DOMContentLoaded", () => {
+    // Event Listeners
+    startButton.addEventListener("click", startGame);
+    exitButton.addEventListener("click", exitGame);
 
-// Fungsi Utama
-// Di app.js
-async function startARGame() {
-    console.log("Starting AR Game...");
-    
-    try {
-        // 1. Check WebXR support
-        if (!navigator.xr) {
-            throw new Error("WebXR not supported");
+    // Enable Click/Touch on Objects
+    scene.addEventListener("click", (e) => {
+        if (e.target.classList.contains("collectable")) {
+            collectObject(e.target);
         }
+    });
 
-        // 2. Request camera permission
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: 'environment',
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            } 
-        });
-        console.log("Camera access granted");
+    // Fallback for Mobile Touch
+    scene.addEventListener("touchstart", (e) => {
+        if (e.target.classList.contains("collectable")) {
+            collectObject(e.target);
+        }
+    });
+});
 
-        // 3. Setup UI
-        startScreen.style.display = 'none';
-        sceneContainer.style.display = 'block';
+// ========== GAME FUNCTIONS ========== //
+async function startGame() {
+    try {
+        // Request Camera Permission
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         
-        // 4. Initialize AR scene
-        await scene.systems['arjs'].start();
-        console.log("AR system started");
-
-        // 5. Start game logic
+        // Switch UI
+        startScreen.style.display = "none";
+        sceneContainer.style.display = "block";
+        
+        // Reset Game
         score = 0;
-        timeLeft = config.gameDuration;
-        activeObjects = [];
+        timeLeft = CONFIG.GAME_DURATION;
         updateScore();
-        updateTimer();
         
-        gameInterval = setInterval(updateGame, 1000);
-        spawnInterval = setInterval(spawnObjects, config.spawnInterval * 1000);
-        spawnObjects();
+        // Start Game Loop
+        isPlaying = true;
+        spawnInterval = setInterval(spawnObject, CONFIG.SPAWN_RATE * 1000);
+        gameTimer = setInterval(updateTimer, 1000);
+        
+        // Initial Spawn
+        spawnObject();
         
     } catch (error) {
-        console.error("AR initialization failed:", error);
-        alert(`Failed to start AR: ${error.message}`);
-        
-        // Fallback to non-AR mode for testing
-        if (confirm("AR not available. Continue in test mode?")) {
-            startScreen.style.display = 'none';
-            sceneContainer.style.display = 'block';
-            // ... start game without AR
-        }
+        alert("Failed to access camera: " + error.message);
     }
 }
 
-function exitARGame() {
-    // Hentikan interval
-    clearInterval(gameInterval);
-    clearInterval(spawnInterval);
+function spawnObject() {
+    if (!isPlaying || activeObjects.length >= CONFIG.MAX_OBJECTS) return;
+
+    const objConfig = CONFIG.OBJECTS[Math.floor(Math.random() * CONFIG.OBJECTS.length)];
     
-    // Hapus semua objek
-    removeAllObjects();
+    // Random Position (1-3 meters away)
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 1 + Math.random() * 2;
+    const x = Math.cos(angle) * distance;
+    const z = Math.sin(angle) * distance;
     
-    // Kembali ke start screen
-    sceneContainer.style.display = 'none';
-    startScreen.style.display = 'block';
+    // Create Object
+    const obj = document.createElement("a-entity");
+    obj.setAttribute("gltf-model", objConfig.model);
+    obj.setAttribute("scale", objConfig.scale);
+    obj.setAttribute("position", `${x} 0 ${z}`);
+    obj.setAttribute("class", "collectable");
+    obj.setAttribute("animation", `property: rotation; to: 0 360 0; loop: true; dur: 8000`);
+    obj.setAttribute("data-points", objConfig.points);
+    
+    // Track Object
+    scene.appendChild(obj);
+    activeObjects.push(obj);
 }
 
-function updateGame() {
+function collectObject(obj) {
+    // Add Score
+    score += parseInt(obj.getAttribute("data-points"));
+    updateScore();
+    
+    // Play Sound
+    playSound("assets/sounds/collect.mp3");
+    
+    // Animate & Remove
+    obj.setAttribute("animation", `property: scale; to: 0 0 0; dur: 200`);
+    setTimeout(() => {
+        scene.removeChild(obj);
+        activeObjects = activeObjects.filter(item => item !== obj);
+    }, 200);
+}
+
+function updateTimer() {
     timeLeft--;
-    updateTimer();
     
     if (timeLeft <= 0) {
         endGame();
@@ -106,125 +125,35 @@ function updateGame() {
 }
 
 function updateScore() {
-    scoreText.setAttribute('value', `Score: ${score}`);
+    scoreText.setAttribute("value", `Score: ${score}`);
 }
 
-function updateTimer() {
-    timerText.setAttribute('value', `Time: ${timeLeft}`);
-}
-
-function spawnObjects() {
-    // Hapus objek yang sudah lama
-    cleanupObjects();
-    
-    // Spawn objek baru jika belum mencapai batas
-    if (activeObjects.length < config.objectCount) {
-        const objectsToSpawn = Math.min(2, config.objectCount - activeObjects.length);
-        
-        for (let i = 0; i < objectsToSpawn; i++) {
-            spawnRandomObject();
-        }
-    }
-}
-
-function spawnRandomObject() {
-    const model = config.models[Math.floor(Math.random() * config.models.length)];
-    
-    // Posisi acak di sekitar pengguna (dalam radius 1-3 meter)
-    const angle = Math.random() * Math.PI * 2;
-    const distance = 1 + Math.random() * 2;
-    const x = Math.cos(angle) * distance;
-    const z = Math.sin(angle) * distance;
-    
-    const entity = document.createElement('a-entity');
-    entity.setAttribute('gltf-model', model.path);
-    entity.setAttribute('scale', model.scale);
-    entity.setAttribute('position', `${x} 0 ${z}`);
-    entity.setAttribute('class', 'clickable-object');
-    entity.setAttribute('animation', {
-        property: 'rotation',
-        to: `0 ${360 + (Math.random() * 180)} 0`,
-        loop: true,
-        dur: 5000 + Math.random() * 5000
-    });
-    
-    // Tambahkan komponen untuk interaksi
-    entity.setAttribute('cursor-listener', '');
-    
-    // Simpan data objek
-    const objectData = {
-        element: entity,
-        points: model.points,
-        spawnTime: Date.now()
-    };
-    
-    activeObjects.push(objectData);
-    scene.appendChild(entity);
-}
-
-function cleanupObjects() {
-    const now = Date.now();
-    const maxLifetime = 15000; // 15 detik
-    
-    activeObjects = activeObjects.filter(obj => {
-        if (now - obj.spawnTime > maxLifetime) {
-            scene.removeChild(obj.element);
-            return false;
-        }
-        return true;
-    });
-}
-
-function removeAllObjects() {
-    activeObjects.forEach(obj => {
-        scene.removeChild(obj.element);
-    });
-    activeObjects = [];
+function playSound(soundPath) {
+    const audio = new Audio(soundPath);
+    audio.play().catch(e => console.log("Audio error:", e));
 }
 
 function endGame() {
-    clearInterval(gameInterval);
+    isPlaying = false;
     clearInterval(spawnInterval);
+    clearInterval(gameTimer);
     
-    alert(`Game Over! Your score: ${score}`);
-    exitARGame();
+    alert(`Game Over! Your Score: ${score}`);
+    exitGame();
 }
 
-// Komponen A-Frame untuk menangani klik
-AFRAME.registerComponent('cursor-listener', {
-    init: function() {
-        this.el.addEventListener('click', (evt) => {
-            // Cari objek yang diklik
-            const clickedObj = activeObjects.find(obj => obj.element === this.el);
-            
-            if (clickedObj) {
-                // Animasi menghilang
-                this.el.setAttribute('animation', {
-                    property: 'scale',
-                    to: '0 0 0',
-                    dur: 200,
-                    easing: 'easeInCubic'
-                });
-                
-                // Hapus setelah animasi
-                setTimeout(() => {
-                    scene.removeChild(this.el);
-                    activeObjects = activeObjects.filter(obj => obj.element !== this.el);
-                    
-                    // Tambah skor
-                    score += clickedObj.points;
-                    updateScore();
-                    
-                    // Mainkan sound effect
-                    playSound('assets/sounds/collect.mp3');
-                }, 200);
-            }
-        });
+function exitGame() {
+    // Cleanup
+    activeObjects.forEach(obj => scene.removeChild(obj));
+    activeObjects = [];
+    
+    // Stop Camera
+    const video = document.querySelector("video");
+    if (video) {
+        video.srcObject?.getTracks()?.forEach(track => track.stop());
     }
-});
-
-// Fungsi untuk memainkan suara
-function playSound(soundPath) {
-    const sound = new Audio(soundPath);
-    sound.play().catch(e => console.log("Audio play failed:", e));
+    
+    // Reset UI
+    sceneContainer.style.display = "none";
+    startScreen.style.display = "block";
 }
