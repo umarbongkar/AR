@@ -80,8 +80,11 @@ body {
 }
 
 a-scene {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 /* Exit Button */
@@ -150,5 +153,5 @@ a-scene {
 }
 
 .collectable:hover {
-    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
+    filter: drop-shadow(0 0 10px gold);
 }
