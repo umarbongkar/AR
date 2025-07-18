@@ -1,77 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-    <title>Markerless AR Game</title>
-
-    <!-- A-Frame & AR.js -->
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.2/aframe/build/aframe-ar.min.js"></script>
-
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        font-family: sans-serif;
-      }
-      #scoreboard {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 10px;
-        font-size: 20px;
-      }
-    </style>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.2.1/aframe/build/aframe-ar.min.js"></script>
   </head>
-  <body>
-    <div id="scoreboard">Skor: 0</div>
-
-    <a-scene
-      vr-mode-ui="enabled: false"
-      embedded
-      arjs="sourceType: webcam; debugUIEnabled: false;"
-    >
+  <body style="margin: 0; overflow: hidden;">
+    <a-scene embedded arjs>
+      <!-- Marker -->
+      <a-marker preset="hiro">
+        <!-- 3D Object -->
+        <a-box position="0 0.5 0" color="red"></a-box>
+      </a-marker>
       <a-entity camera></a-entity>
-
-      <a-sphere
-        id="target"
-        position="0 0 -3"
-        radius="0.3"
-        color="red"
-        class="clickable"
-      ></a-sphere>
     </a-scene>
-
-    <script>
-      const target = document.querySelector("#target");
-      const scoreboard = document.getElementById("scoreboard");
-      let score = 0;
-
-      function getRandomPosition() {
-        const x = (Math.random() - 0.5) * 4; // -2 to 2
-        const y = Math.random() * 2 + 0.5;   // 0.5 to 2.5
-        const z = -Math.random() * 2 - 2;    // -2 to -4
-        return `${x} ${y} ${z}`;
-      }
-
-      function repositionTarget() {
-        target.setAttribute("position", getRandomPosition());
-        target.setAttribute("visible", true);
-      }
-
-      target.addEventListener("click", () => {
-        score++;
-        scoreboard.innerText = "Skor: " + score;
-        target.setAttribute("visible", false);
-        setTimeout(repositionTarget, 1000);
-      });
-
-      window.addEventListener("load", () => {
-        repositionTarget();
-      });
-    </script>
   </body>
 </html>
