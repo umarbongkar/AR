@@ -24,16 +24,10 @@
     <div id="scene-container" style="display: none;">
         <a-scene 
             vr-mode-ui="enabled: false"
-            arjs="sourceType: webcam; trackingMethod: best;"
+            arjs="trackingMethod: best; sourceType: webcam;"
             renderer="antialias: true; alpha: true"
-        >
-            <!-- Dynamic Objects Will Spawn Here -->
-            <a-camera gps-camera rotation-reader></a-camera>
-            
-            <!-- Score UI -->
-            <a-entity id="score-ui" position="0 1.5 -2">
-                <a-text value="Score: 0" id="score-text" color="gold" align="center" width="5"></a-text>
-            </a-entity>
+            xr-mode-ui="enabled: true">
+            <!-- Konten AR di sini -->
         </a-scene>
         
         <button id="exit-button">EXIT AR</button>
