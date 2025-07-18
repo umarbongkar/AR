@@ -1,63 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AR Markerless Game</title>
-    <!-- Load A-Frame + AR.js (WebXR) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>AR Treasure Hunt</title>
+    <!-- A-Frame + AR.js -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-    <!-- Load Game Script -->
+    <script src="https://cdn.jsdelivr.net/npm/ar.js@3.4.0/aframe/build/aframe-ar.min.js"></script>
+    <!-- Game Script -->
     <script src="js/app.js" defer></script>
-    <!-- CSS -->
+    <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <!-- Start Screen -->
     <div id="start-screen">
-        <h1>AR Treasure Hunt</h1>
-        <button id="start-button" onclick="checkCameraPermissions()">START AR</button>
-
-<script>
-    async function checkCameraPermissions() {
-        try {
-            // Step 1: Cek fitur WebXR
-            if (!navigator.xr) {
-                throw new Error("Browser tidak mendukung AR");
-            }
-
-            // Step 2: Cek izin kamera
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: {
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            });
-
-            // Step 3: Jika berhasil, mulai AR
-            startARGame();
-            
-        } catch (error) {
-            alert(`ERROR: ${error.message}`);
-            console.error("Camera failed:", error);
-        }
-    }
-</script>
-        <p class="info">Arahkan kamera ke permukaan datar</p>
+        <div class="title">AR Treasure Hunt</div>
+        <button id="start-button">START GAME</button>
+        <div class="instructions">
+            <p>• Cari dan klik objek 3D di dunia nyata</p>
+            <p>• Gunakan kamera belakang</p>
+            <p>• Butuh browser terbaru (Chrome/Safari)</p>
+        </div>
     </div>
 
     <!-- AR Scene (Hidden Initially) -->
-    <div id="scene-container" style="display: none;">
+    <div id="ar-scene" style="display: none;">
         <a-scene 
             vr-mode-ui="enabled: false"
-            arjs=" sourceType: webcam; trackingMethod: best;"
-            renderer="antialias: true; alpha: true"
-            xr-mode-ui="enabled: true">
-            <!-- Konten AR di sini -->
+            arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
+            renderer="antialias: true; alpha: true;"
+            xr-mode-ui="enabled: true"
+        >
+            <!-- Camera -->
+            <a-entity camera></a-entity>
+            
+            <!-- Dynamic Objects Spawn Here -->
+            
+            <!-- Score UI -->
+            <a-entity id="score-ui" position="0 1.5 -2">
+                <a-text id="score-text" value="Score: 0" color="gold" align="center" width="5"></a-text>
+                <a-text id="timer-text" value="Time: 60" position="0 -0.3 0" color="white" align="center" width="5"></a-text>
+            </a-entity>
         </a-scene>
         
+        <!-- Exit Button -->
         <button id="exit-button">EXIT AR</button>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal">
+        <div class="modal-content">
+            <h2>Error</h2>
+            <p id="error-message"></p>
+            <button id="close-error">OK</button>
+        </div>
     </div>
 </body>
 </html>
