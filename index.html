@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Markerless WebAR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { margin: 0; overflow: hidden; }
-    #score { position: fixed; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; font-size: 18px; }
-  </style>
+    <meta charset="utf-8">
+    <title>AR 3D Object Game</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="js/app.js"></script>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="score">Score: 0</div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"></script>
-  <script type="module" src="app.js"></script>
+    <a-scene embedded arjs='detectionMode: mono_and_matrix; matrixCodeType: 3x3;'>
+        <!-- Marker Kamera -->
+        <a-marker preset="hiro">
+            <!-- Objek 3D akan muncul di sini secara dinamis -->
+        </a-marker>
+        
+        <!-- Kamera -->
+        <a-entity camera></a-entity>
+        
+        <!-- UI Skor -->
+        <a-entity id="score-board" position="0 0.5 -1">
+            <a-text id="score-text" value="Score: 0" color="black" align="center" width="5"></a-text>
+        </a-entity>
+    </a-scene>
 </body>
 </html>
