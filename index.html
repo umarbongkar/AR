@@ -1,38 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.rawgit.com/jeromeetienne/ar.js/2.1.4/aframe/build/aframe-ar.min.js"></script>
-  </head>
-  <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
-      <!-- Kamera AR -->
-      <a-camera-static position="0 0 0"></a-camera-static>
-
-      <!-- Objek random -->
-      <a-entity id="randomBox"
-        geometry="primitive: box"
-        material="color: red"
-        position="0 0 -2"
-        class="clickable">
-      </a-entity>
-    </a-scene>
-
-    <script>
-      const box = document.querySelector('#randomBox');
-      function getRandomPos() {
-        const x = (Math.random() - 0.5) * 4;
-        const y = Math.random() * 2;
-        const z = -Math.random() * 4 - 1;
-        return `${x} ${y} ${z}`;
-      }
-
-      box.setAttribute('position', getRandomPos());
-
-      box.addEventListener('click', () => {
-        alert("Objek disentuh!");
-        box.setAttribute('position', getRandomPos()); // Pindah lagi
-      });
-    </script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <title>Markerless WebAR Game</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-face-three.prod.js"></script>
+  <script src="js/app.js" defer></script>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #scoreboard {
+      position: absolute;
+      top: 10px; left: 10px;
+      color: white;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      z-index: 1;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreboard">Skor: 0</div>
+</body>
 </html>
