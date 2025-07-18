@@ -16,7 +16,34 @@
     <!-- Start Screen -->
     <div id="start-screen">
         <h1>AR Treasure Hunt</h1>
-        <button id="start-button">START GAME</button>
+        <button id="start-button" onclick="checkCameraPermissions()">START AR</button>
+
+<script>
+    async function checkCameraPermissions() {
+        try {
+            // Step 1: Cek fitur WebXR
+            if (!navigator.xr) {
+                throw new Error("Browser tidak mendukung AR");
+            }
+
+            // Step 2: Cek izin kamera
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+
+            // Step 3: Jika berhasil, mulai AR
+            startARGame();
+            
+        } catch (error) {
+            alert(`ERROR: ${error.message}`);
+            console.error("Camera failed:", error);
+        }
+    }
+</script>
         <p class="info">Arahkan kamera ke permukaan datar</p>
     </div>
 
