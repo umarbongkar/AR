@@ -28,21 +28,22 @@
     <!-- AR Scene (Hidden Initially) -->
     <div id="ar-scene" style="display: none;">
         <a-scene 
-            vr-mode-ui="enabled: false"
-            arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
-            renderer="antialias: true; alpha: true;"
-            xr-mode-ui="enabled: true"
-        >
-            <!-- Camera -->
-            <a-entity camera></a-entity>
-            
-            <!-- Dynamic Objects Spawn Here -->
-            
-            <!-- Score UI -->
-            <a-entity id="score-ui" position="0 1.5 -2">
-                <a-text id="score-text" value="Score: 0" color="gold" align="center" width="5"></a-text>
-                <a-text id="timer-text" value="Time: 60" position="0 -0.3 0" color="white" align="center" width="5"></a-text>
-            </a-entity>
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
+    renderer="antialias: true; alpha: true;"
+    xr-mode-ui="enabled: true"
+    hit-test-renderer="enabled: true">
+    
+    <!-- Tambahkan ini untuk deteksi permukaan -->
+    <a-entity hit-test-plane="enabled: true"></a-entity>
+    
+    <!-- Kamera -->
+    <a-entity camera></a-entity>
+    
+    <!-- UI Skor -->
+    <a-entity id="score-ui" position="0 1.5 -2">
+        <a-text id="score-text" value="Score: 0" color="gold" align="center" width="5"></a-text>
+    </a-entity>
         </a-scene>
         
         <!-- Exit Button -->
